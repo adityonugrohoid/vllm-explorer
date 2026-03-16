@@ -141,9 +141,9 @@ def build_endpoint_defs(model_id: str | None) -> list[EndpointDef]:
         ),
         EndpointDef(
             "POST", "/detokenize", "tokenizer",
-            body={"model": m, "tokens": [1, 22557, 28725, 1526, 28808]},
+            body={"model": m, "tokens": [1, 2, 3]},
             requires_model=True,
-            notes="Token IDs → text",
+            notes="Token IDs → text (tokens updated dynamically from /tokenize result)",
         ),
 
         # --- Pooling ---
@@ -351,9 +351,18 @@ async def run_probes() -> list[ProbeResult]:
 
         # Step 4: Probe all endpoints sequentially (to avoid overwhelming server)
         results: list[ProbeResult] = []
+        tokenize_tokens: list[int] | None = None
         for ep in endpoints:
+            # Patch detokenize body with actual tokens from tokenize result
+            if ep.path == "/detokenize" and tokenize_tokens:
+                ep.body = {"model": model_id or "unknown", "tokens": tokenize_tokens}
+
             result = await probe_single(client, ep)
             results.append(result)
+
+            # Capture tokens from tokenize result for detokenize probe
+            if ep.path == "/tokenize" and result.response_body and isinstance(result.response_body, dict):
+                tokenize_tokens = result.response_body.get("tokens")
 
             # Live feedback
             status = result.status_code

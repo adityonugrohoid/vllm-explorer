@@ -18,7 +18,7 @@ Outputs:
 
 Usage:
   python scripts/test_model.py
-  python scripts/test_model.py --model mistralai/Mistral-7B-Instruct-v0.2
+  python scripts/test_model.py --model google/gemma-3-1b-it
 """
 
 import argparse
