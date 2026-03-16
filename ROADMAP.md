@@ -11,7 +11,7 @@
 - [ ] `docs/endpoint-reference.md` — human-readable API reference from probe results
 
 **Primary model:**
-- `google/gemma-3-1b-it` (selected for both phases of gpu-autoscale-inference — small footprint, fast cold start, ungated, Google brand)
+- `Qwen/Qwen2.5-1.5B-Instruct` (selected for both phases of gpu-autoscale-inference — ~3GB disk, ~3.5GB VRAM, fast cold start, ungated)
 
 **Optional comparison models:**
 - `facebook/opt-125m` (endpoint validation only — loads instantly)

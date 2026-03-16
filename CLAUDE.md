@@ -7,7 +7,7 @@ Probes the full vLLM server API surface and builds a model capability catalog. P
 ## Purpose
 
 - Document every vLLM HTTP endpoint: parameters, response shapes, error behavior
-- Test selected model (`google/gemma-3-1b-it`) and alternatives for capability and performance comparison
+- Test selected model (`Qwen/Qwen2.5-1.5B-Instruct`) and alternatives for capability and performance comparison
 - Benchmark TTFT and tokens/sec per model to support cold-start demo planning
 - Understand the `/metrics` Prometheus endpoint (used by the main project's observability stack)
 
@@ -48,10 +48,15 @@ docker run --gpus all \
   -p 8000:8000 \
   --ipc=host \
   vllm/vllm-openai \
-  --model google/gemma-3-1b-it
+  --model Qwen/Qwen2.5-1.5B-Instruct \
+  --max-model-len 4096 \
+  --gpu-memory-utilization 0.8 \
+  --enforce-eager
 ```
 
-Wait until the log shows `Application startup complete` before running scripts (~3–5s for Gemma 3 1B).
+Wait until the log shows `Application startup complete` before running scripts (~5–10s for Qwen2.5-1.5B).
+
+**Required flags for 8GB VRAM (WSL2):** `--max-model-len 4096 --gpu-memory-utilization 0.8 --enforce-eager`
 
 To test with a minimal model for endpoint validation only:
 ```bash
@@ -76,13 +81,13 @@ cp .env.example .env
 python scripts/probe_endpoints.py
 
 # Test a specific model with parameter sweeps
-python scripts/test_model.py --model google/gemma-3-1b-it
+python scripts/test_model.py --model Qwen/Qwen2.5-1.5B-Instruct
 
 # Build full catalog across all tested models
 python scripts/build_catalog.py
 
 # Run TTFT + tokens/sec benchmark
-python scripts/benchmark.py --model google/gemma-3-1b-it
+python scripts/benchmark.py --model Qwen/Qwen2.5-1.5B-Instruct
 ```
 
 ## vLLM API Endpoints to Probe
@@ -107,8 +112,8 @@ python scripts/benchmark.py --model google/gemma-3-1b-it
 
 - `/metrics` is the most important endpoint for the main project — verify what Prometheus metrics vLLM exposes natively (gpu_cache_usage_perc, num_requests_running, etc.)
 - Model loading is one-time per `docker run` — no hot-swap here (that's a main project concern)
-- `google/gemma-3-1b-it` is the selected model for both phases of the main project — benchmark this one thoroughly
-- Platform is model-agnostic via `MODEL_ID` env var — Gemma 1B selected for small footprint (~2GB), fast cold start (~3–5s), and Google brand recognition
+- `Qwen/Qwen2.5-1.5B-Instruct` is the selected model for both phases of the main project — benchmark this one thoroughly
+- Platform is model-agnostic via `MODEL_ID` env var — Qwen2.5-1.5B selected for small footprint (~3GB), fast cold start (~5-10s), ungated, strong benchmark scores
 
 ## Project Structure
 
@@ -130,4 +135,4 @@ vllm-explorer/
 
 ## Related Project
 
-`~/projects/gpu-autoscale-inference` — the main portfolio project this explorer supports. Model selection and parameter decisions from this repo feed directly into the vLLM deployment config in that project. Model decision: `google/gemma-3-1b-it` for both phases.
+`~/projects/gpu-autoscale-inference` — the main portfolio project this explorer supports. Model selection and parameter decisions from this repo feed directly into the vLLM deployment config in that project. Model decision: `Qwen/Qwen2.5-1.5B-Instruct` for both phases.
