@@ -16,7 +16,7 @@ Outputs:
 
 Usage:
   python scripts/benchmark.py
-  python scripts/benchmark.py --model mistralai/Mistral-7B-Instruct-v0.2
+  python scripts/benchmark.py --model google/gemma-3-1b-it
   python scripts/benchmark.py --iterations 10
 """
 

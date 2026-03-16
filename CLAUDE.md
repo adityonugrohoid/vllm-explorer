@@ -7,7 +7,7 @@ Probes the full vLLM server API surface and builds a model capability catalog. P
 ## Purpose
 
 - Document every vLLM HTTP endpoint: parameters, response shapes, error behavior
-- Test multiple models (Mistral-7B, Phi-3 Mini, Llama-3-8B) for capability and performance comparison
+- Test selected model (`google/gemma-3-1b-it`) and alternatives for capability and performance comparison
 - Benchmark TTFT and tokens/sec per model to support cold-start demo planning
 - Understand the `/metrics` Prometheus endpoint (used by the main project's observability stack)
 
@@ -48,12 +48,12 @@ docker run --gpus all \
   -p 8000:8000 \
   --ipc=host \
   vllm/vllm-openai \
-  --model mistralai/Mistral-7B-Instruct-v0.2
+  --model google/gemma-3-1b-it
 ```
 
-Wait until the log shows `Application startup complete` before running scripts (~30–60s for Mistral-7B on 8GB VRAM).
+Wait until the log shows `Application startup complete` before running scripts (~3–5s for Gemma 3 1B).
 
-To test with a smaller model first:
+To test with a minimal model for endpoint validation only:
 ```bash
 docker run --gpus all -p 8000:8000 --ipc=host vllm/vllm-openai --model facebook/opt-125m
 ```
@@ -76,13 +76,13 @@ cp .env.example .env
 python scripts/probe_endpoints.py
 
 # Test a specific model with parameter sweeps
-python scripts/test_model.py --model mistralai/Mistral-7B-Instruct-v0.2
+python scripts/test_model.py --model google/gemma-3-1b-it
 
 # Build full catalog across all tested models
 python scripts/build_catalog.py
 
 # Run TTFT + tokens/sec benchmark
-python scripts/benchmark.py --model mistralai/Mistral-7B-Instruct-v0.2
+python scripts/benchmark.py --model google/gemma-3-1b-it
 ```
 
 ## vLLM API Endpoints to Probe
@@ -107,8 +107,8 @@ python scripts/benchmark.py --model mistralai/Mistral-7B-Instruct-v0.2
 
 - `/metrics` is the most important endpoint for the main project — verify what Prometheus metrics vLLM exposes natively (gpu_cache_usage_perc, num_requests_running, etc.)
 - Model loading is one-time per `docker run` — no hot-swap here (that's a main project concern)
-- Mistral-7B Q4 is the target model for the main portfolio project cloud phase — benchmark this one thoroughly
-- VRAM constraint: 8GB local — stick to Q4 quantized models for 7B+
+- `google/gemma-3-1b-it` is the selected model for both phases of the main project — benchmark this one thoroughly
+- Platform is model-agnostic via `MODEL_ID` env var — Gemma 1B selected for small footprint (~2GB), fast cold start (~3–5s), and Google brand recognition
 
 ## Project Structure
 
@@ -130,4 +130,4 @@ vllm-explorer/
 
 ## Related Project
 
-`~/projects/gpu-autoscale-inference` — the main portfolio project this explorer supports. Model selection and parameter decisions from this repo feed directly into the vLLM deployment config in that project.
+`~/projects/gpu-autoscale-inference` — the main portfolio project this explorer supports. Model selection and parameter decisions from this repo feed directly into the vLLM deployment config in that project. Model decision: `google/gemma-3-1b-it` for both phases.
